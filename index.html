@@ -1,0 +1,542 @@
+ <!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Modo Monje">
+<title>🛡️ Modo Monje</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: #0a0a0f;
+    color: #e8e4dc;
+    font-family: -apple-system, 'SF Pro Display', system-ui, sans-serif;
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1025 100%);
+    border-bottom: 1px solid #2a2040;
+    padding: 52px 20px 20px;
+    text-align: center;
+  }
+  .header-eyebrow {
+    font-size: 10px; letter-spacing: 4px; color: #8b7fa8;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .header-title { font-size: 24px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+  .header-stats { display: flex; justify-content: center; gap: 28px; margin-top: 16px; }
+  .stat-box { text-align: center; }
+  .stat-val { font-size: 22px; font-weight: 900; }
+  .stat-lbl { font-size: 9px; color: #6b6080; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+  .header-status { margin-top: 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
+
+  /* NAV SEMANAS */
+  .week-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px;
+    background: #0f0f1a;
+    border-bottom: 1px solid #1e1a2e;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .week-btn {
+    background: #1e1a2e; border: none; color: #a094c0;
+    border-radius: 8px; padding: 6px 16px; font-size: 16px; cursor: pointer;
+  }
+  .week-info { text-align: center; }
+  .week-title { font-weight: 700; font-size: 14px; color: #fff; }
+  .week-sub { font-size: 10px; color: #6b6080; margin-top: 2px; }
+
+  /* TAB TOGGLE */
+  .tab-bar {
+    display: flex; gap: 8px; padding: 12px 20px 0;
+  }
+  .tab-btn {
+    flex: 1; padding: 9px 0; border-radius: 10px; border: none;
+    font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s;
+  }
+  .tab-btn.active { background: #4c3880; color: #fff; }
+  .tab-btn.inactive { background: #1a1630; color: #6b6080; }
+
+  /* CONTENT */
+  .content { padding: 16px 20px; }
+
+  /* SECTION TITLE */
+  .section-title { margin-top: 24px; margin-bottom: 10px; }
+  .section-title:first-child { margin-top: 8px; }
+  .section-title-row { display: flex; align-items: center; gap: 8px; }
+  .section-title-text { font-weight: 800; font-size: 14px; color: #fff; letter-spacing: -0.3px; }
+  .section-subtitle { font-size: 10px; color: #5a5070; margin-top: 2px; margin-left: 26px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  /* HABIT CARD */
+  .habit-card {
+    background: #0f0f1a; border: 1px solid #1e1a2e;
+    border-radius: 14px; margin-bottom: 12px; overflow: hidden;
+  }
+  .habit-header { padding: 12px 14px 8px; display: flex; gap: 10px; align-items: flex-start; }
+  .habit-emoji { font-size: 18px; flex-shrink: 0; }
+  .habit-name { font-weight: 700; font-size: 13px; color: #e8e4dc; }
+  .habit-desc { font-size: 11px; color: #5a5070; margin-top: 2px; line-height: 1.4; }
+  .habit-days { display: flex; border-top: 1px solid #1e1a2e; }
+  .day-btn {
+    flex: 1; padding: 8px 0; border: none; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    transition: background 0.15s;
+  }
+  .day-btn:not(:last-child) { border-right: 1px solid #1e1a2e; }
+  .day-btn.done { background: #1e3a22; }
+  .day-btn.undone { background: transparent; }
+  .day-label { font-size: 9px; color: #5a5070; font-weight: 600; letter-spacing: 0.5px; }
+  .day-check { font-size: 14px; }
+
+  /* MILESTONE CARD */
+  .milestone-btn {
+    width: 100%; display: flex; align-items: flex-start; gap: 12px;
+    border-radius: 14px; padding: 14px; margin-bottom: 10px;
+    cursor: pointer; text-align: left; border: 1px solid;
+    transition: all 0.2s;
+  }
+  .milestone-btn.done { background: #0f2a14; border-color: #2a5030; }
+  .milestone-btn.undone { background: #0f0f1a; border-color: #1e1a2e; }
+  .milestone-emoji { font-size: 20px; margin-top: 1px; flex-shrink: 0; }
+  .milestone-body { flex: 1; }
+  .milestone-row { display: flex; justify-content: space-between; align-items: center; }
+  .milestone-name { font-weight: 700; font-size: 13px; }
+  .milestone-name.done { color: #4ade80; }
+  .milestone-name.undone { color: #e8e4dc; }
+  .milestone-check { font-size: 18px; }
+  .milestone-desc { font-size: 11px; color: #5a5070; margin-top: 3px; line-height: 1.5; }
+
+  /* LIMITS */
+  .limits-card { background: #1a0f0f; border: 1px solid #3a1a1a; border-radius: 14px; padding: 14px; }
+  .limit-row { display: flex; gap: 10px; padding: 8px 0; align-items: flex-start; }
+  .limit-row:not(:last-child) { border-bottom: 1px solid #2a1515; }
+  .limit-x { color: #ef4444; font-size: 14px; flex-shrink: 0; }
+  .limit-text { font-size: 12px; color: #c0a0a0; line-height: 1.5; }
+
+  /* REVIEW */
+  .review-hero {
+    background: #0f0f1a; border: 1px solid #2a2040;
+    border-radius: 16px; padding: 20px; margin-bottom: 16px; text-align: center;
+  }
+  .review-eyebrow { font-size: 10px; color: #6b6080; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+  .review-pct { font-size: 52px; font-weight: 900; line-height: 1; }
+  .review-sub { font-size: 12px; color: #8b7fa8; margin-top: 6px; }
+  .review-missing { font-size: 11px; font-weight: 600; margin-top: 8px; color: #ef4444; }
+
+  /* PROGRESS BAR */
+  .progress-item {
+    background: #0f0f1a; border: 1px solid #1e1a2e;
+    border-radius: 12px; padding: 10px 14px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .progress-emoji { font-size: 16px; flex-shrink: 0; }
+  .progress-body { flex: 1; }
+  .progress-name { font-size: 12px; font-weight: 600; color: #e8e4dc; margin-bottom: 4px; }
+  .progress-bar-bg { height: 4px; background: #1e1a2e; border-radius: 4px; }
+  .progress-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+  .progress-count { font-size: 12px; font-weight: 700; min-width: 36px; text-align: right; }
+
+  /* PROJECT LIST */
+  .project-list { background: #0f0f1a; border: 1px solid #1e1a2e; border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+  .project-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
+  .project-row:not(:last-child) { border-bottom: 1px solid #1e1a2e; }
+  .project-label { font-size: 12px; }
+  .project-label.done { color: #4ade80; }
+  .project-label.undone { color: #6b6080; }
+  .project-footer { font-size: 11px; color: #6b6080; text-align: right; margin-top: 10px; }
+
+  /* WEEK HISTORY */
+  .week-history { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .week-pill {
+    width: 44px; border-radius: 10px; padding: 8px 4px; text-align: center;
+    border: 1px solid;
+  }
+  .week-pill-label { font-size: 9px; color: #5a5070; margin-bottom: 4px; }
+  .week-pill-val { font-size: 12px; font-weight: 700; }
+
+  /* BEST/WORST */
+  .bw-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .bw-card { flex: 1; border-radius: 12px; padding: 12px; text-align: center; }
+  .bw-card.best { background: #0f2a14; border: 1px solid #2a5030; }
+  .bw-card.worst { background: #2a0f0f; border: 1px solid #5a1a1a; }
+  .bw-eyebrow { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .bw-card.best .bw-eyebrow { color: #4ade80; }
+  .bw-card.worst .bw-eyebrow { color: #ef4444; }
+  .bw-week { font-size: 20px; font-weight: 800; }
+  .bw-card.best .bw-week { color: #4ade80; }
+  .bw-card.worst .bw-week { color: #ef4444; }
+  .bw-pct { font-size: 12px; }
+  .bw-card.best .bw-pct { color: #4ade80; }
+  .bw-card.worst .bw-pct { color: #ef4444; }
+
+  /* FOOTER NOTE */
+  .footer-note {
+    background: #0f0f1a; border: 1px solid #2a2040;
+    border-radius: 12px; padding: 14px; font-size: 11px;
+    color: #5a5070; line-height: 1.7; text-align: center;
+  }
+  .footer-note span { color: #8b7fa8; font-weight: 600; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: #22c55e; color: #fff; padding: 10px 20px;
+    border-radius: 20px; font-size: 13px; font-weight: 600;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 999;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<div class="toast" id="toast">✓ Guardado</div>
+
+<script>
+const WEEKS_TOTAL = 13;
+const STORAGE_KEY = 'modo_monje_v2';
+
+const DAILY_HABITS = [
+  { id: 'blindaje', emoji: '🧠', label: '05:00 AM — Blindaje Mental', desc: '10 min silencio + visualización. Sin tocar el teléfono.' },
+  { id: 'gym', emoji: '🦵', label: '05:30 AM — Rehabilitación de Rodilla', desc: 'Asistencia y ejecución perfecta en el gimnasio.' },
+  { id: 'redes', emoji: '📵', label: 'Bloqueo de Ruido', desc: 'Cero consumo de redes sociales en el día.' },
+  { id: 'lectura', emoji: '📖', label: 'Filtro de Ejecución (Lectura)', desc: 'Capítulo de El Hombre Más Rico de Babilonia + 1 acción anotada.' },
+  { id: 'apagado', emoji: '🌙', label: '09:30 PM — Apagado de Sistema', desc: 'Postura de reposo articular + luces apagadas.' },
+];
+
+const WEEKLY_MILESTONES = [
+  { id: 'curriculum', emoji: '📄', label: 'Ataque Corporativo', desc: 'Enviar CV a mínimo 3 vacantes bancarias esta semana.' },
+  { id: 'diezmo', emoji: '💰', label: 'Diezmo Estratégico', desc: 'Separar y congelar el 10% de los ingresos netos. Intocable.' },
+];
+
+const PROJECT_MILESTONES = [
+  { id: 'bodega', emoji: '🏭', label: 'Acondicionamiento de Bodega', desc: 'Local impermeabilizado, limpio y listo.' },
+  { id: 'inventario', emoji: '📦', label: 'Inventario Asegurado', desc: 'Mercancía trasladada y organizada para conservación.' },
+  { id: 'cv_blindado', emoji: '🛡️', label: 'Currículum Blindado', desc: 'CV 100% en formato corporativo.' },
+];
+
+const DAYS = ['Lun','Mar','Mié','Jue','Vie','Sáb'];
+const LIMITS = [
+  'PROHIBIDO iniciar modelos de negocio nuevos.',
+  'PROHIBIDO buscar "objetos brillantes" o ideas de contenido digital.',
+  'PROHIBIDO alterar la rutina médica por desesperación o cargar más peso del autorizado.',
+];
+
+// STATE
+let state = {
+  data: {},
+  week: 1,
+  view: 'week',
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state.data = JSON.parse(raw);
+  } catch(e) {}
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+    showToast();
+  } catch(e) {}
+}
+
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1200);
+}
+
+function toggle(key) {
+  state.data[key] = !state.data[key];
+  saveState();
+  render();
+}
+
+// SCORES
+function weekScore(w) {
+  const totalDaily = DAILY_HABITS.length * 6;
+  const totalWeekly = WEEKLY_MILESTONES.length;
+  const total = totalDaily + totalWeekly;
+  let done = 0;
+  for (let d = 0; d < 6; d++)
+    for (const h of DAILY_HABITS)
+      if (state.data[`w${w}_d${d}_${h.id}`]) done++;
+  for (const m of WEEKLY_MILESTONES)
+    if (state.data[`w${w}_wm_${m.id}`]) done++;
+  return { done, total, pct: Math.round((done/total)*100) };
+}
+
+function projectScore() {
+  const done = PROJECT_MILESTONES.filter(m => state.data[`pm_${m.id}`]).length;
+  const total = PROJECT_MILESTONES.length;
+  return { done, total, pct: Math.round((done/total)*100) };
+}
+
+function overallScore() {
+  let td = 0, ta = 0;
+  for (let w = 1; w <= WEEKS_TOTAL; w++) {
+    const s = weekScore(w); td += s.done; ta += s.total;
+  }
+  const ps = projectScore(); td += ps.done; ta += ps.total;
+  return Math.round((td/ta)*100);
+}
+
+// COLOR
+function pctColor(p) {
+  if (p >= 80) return '#22c55e';
+  if (p >= 50) return '#f59e0b';
+  return '#ef4444';
+}
+
+function pctLabel(p) {
+  if (p >= 90) return 'MODO MONJE ACTIVADO 🔥';
+  if (p >= 70) return 'Avanzando fuerte 💪';
+  if (p >= 50) return 'En progreso — sube el ritmo ⚡';
+  return 'Área de mejora — sin autoengaños ⚠️';
+}
+
+// RENDER
+function render() {
+  const ws = weekScore(state.week);
+  const ps = projectScore();
+  const overall = overallScore();
+
+  let html = `
+  <div class="header">
+    <div class="header-eyebrow">Plan 90 días</div>
+    <div class="header-title">🛡️ MODO MONJE</div>
+    <div class="header-stats">
+      <div class="stat-box">
+        <div class="stat-val" style="color:${pctColor(ws.pct)}">${ws.pct}%</div>
+        <div class="stat-lbl">Esta semana</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" style="color:${pctColor(ps.pct)}">${ps.pct}%</div>
+        <div class="stat-lbl">Proyectos</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" style="color:${pctColor(overall)}">${overall}%</div>
+        <div class="stat-lbl">90 días</div>
+      </div>
+    </div>
+    <div class="header-status" style="color:${pctColor(ws.pct)}">${pctLabel(ws.pct)}</div>
+  </div>
+
+  <div class="week-nav">
+    <button class="week-btn" onclick="changeWeek(-1)">◀</button>
+    <div class="week-info">
+      <div class="week-title">Semana ${state.week} de ${WEEKS_TOTAL}</div>
+      <div class="week-sub">${ws.done}/${ws.total} hábitos cumplidos</div>
+    </div>
+    <button class="week-btn" onclick="changeWeek(1)">▶</button>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn ${state.view==='week'?'active':'inactive'}" onclick="setView('week')">📅 Semana</button>
+    <button class="tab-btn ${state.view==='review'?'active':'inactive'}" onclick="setView('review')">📊 Revisión Dominical</button>
+  </div>
+
+  <div class="content">
+  `;
+
+  if (state.view === 'week') {
+    html += renderWeekView(ws);
+  } else {
+    html += renderReviewView(ws, ps);
+  }
+
+  html += `</div>`;
+  document.getElementById('app').innerHTML = html;
+}
+
+function renderWeekView(ws) {
+  let h = '';
+
+  // HÁBITOS DIARIOS
+  h += sectionTitle('📅', 'Hábitos Diarios', 'Lunes a Sábado · Marcar cada noche');
+
+  for (const habit of DAILY_HABITS) {
+    h += `<div class="habit-card">
+      <div class="habit-header">
+        <span class="habit-emoji">${habit.emoji}</span>
+        <div>
+          <div class="habit-name">${habit.label}</div>
+          <div class="habit-desc">${habit.desc}</div>
+        </div>
+      </div>
+      <div class="habit-days">`;
+    for (let d = 0; d < 6; d++) {
+      const key = `w${state.week}_d${d}_${habit.id}`;
+      const done = !!state.data[key];
+      h += `<button class="day-btn ${done?'done':'undone'}" onclick="toggle('${key}')">
+        <span class="day-label">${DAYS[d]}</span>
+        <span class="day-check">${done?'✅':'⬜'}</span>
+      </button>`;
+    }
+    h += `</div></div>`;
+  }
+
+  // HITOS SEMANALES
+  h += sectionTitle('🎯', 'Hitos Semanales', 'Victorias tácticas de esta semana');
+  for (const m of WEEKLY_MILESTONES) {
+    const key = `w${state.week}_wm_${m.id}`;
+    const done = !!state.data[key];
+    h += milestoneCard(m, done, key);
+  }
+
+  // HITOS PROYECTO
+  h += sectionTitle('📦', 'Hitos de Proyecto', 'Una sola vez — cierre del ciclo actual');
+  for (const m of PROJECT_MILESTONES) {
+    const key = `pm_${m.id}`;
+    const done = !!state.data[key];
+    h += milestoneCard(m, done, key);
+  }
+
+  // LÍMITES
+  h += sectionTitle('🚫', 'Límites Inquebrantables', 'Si rompes uno, el sistema falla');
+  h += `<div class="limits-card">`;
+  LIMITS.forEach((rule, i) => {
+    h += `<div class="limit-row" ${i===LIMITS.length-1?'style="border:none"':''}>
+      <span class="limit-x">✖</span>
+      <span class="limit-text">${rule}</span>
+    </div>`;
+  });
+  h += `</div>`;
+
+  return h;
+}
+
+function renderReviewView(ws, ps) {
+  let h = '';
+
+  h += `<div class="review-hero">
+    <div class="review-eyebrow">Revisión Dominical — Semana ${state.week}</div>
+    <div class="review-pct" style="color:${pctColor(ws.pct)}">${ws.pct}%</div>
+    <div class="review-sub">${ws.done} de ${ws.total} compromisos cumplidos</div>
+    ${ws.pct < 100 ? `<div class="review-missing">${ws.total - ws.done} compromisos sin cumplir esta semana</div>` : ''}
+  </div>`;
+
+  // ANÁLISIS HÁBITOS
+  h += sectionTitle('🔍', `Análisis de Hábitos — Semana ${state.week}`, '¿Dónde fallaste?');
+  for (const habit of DAILY_HABITS) {
+    let count = 0;
+    for (let d = 0; d < 6; d++)
+      if (state.data[`w${state.week}_d${d}_${habit.id}`]) count++;
+    const pct = Math.round((count/6)*100);
+    h += `<div class="progress-item">
+      <span class="progress-emoji">${habit.emoji}</span>
+      <div class="progress-body">
+        <div class="progress-name">${habit.label}</div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" style="width:${pct}%;background:${pctColor(pct)}"></div>
+        </div>
+      </div>
+      <span class="progress-count" style="color:${pctColor(pct)}">${count}/6</span>
+    </div>`;
+  }
+
+  // PROYECTOS
+  h += sectionTitle('📦', 'Estado de Proyectos', 'Avance único');
+  h += `<div class="project-list">`;
+  PROJECT_MILESTONES.forEach((m, i) => {
+    const done = !!state.data[`pm_${m.id}`];
+    h += `<div class="project-row" ${i===PROJECT_MILESTONES.length-1?'style="border:none"':''}>
+      <span class="project-label ${done?'done':'undone'}">${m.emoji} ${m.label}</span>
+      <span>${done?'✅':'⬜'}</span>
+    </div>`;
+  });
+  h += `<div class="project-footer">${ps.done}/${ps.total} completados — ${ps.pct}%</div></div>`;
+
+  // HISTORIAL
+  h += sectionTitle('📈', 'Historial de Semanas', 'Tendencia de ejecución');
+  h += `<div class="week-history">`;
+  const scores = [];
+  for (let w = 1; w <= WEEKS_TOTAL; w++) {
+    const s = weekScore(w);
+    scores.push({ w, ...s });
+    const isActive = w === state.week;
+    h += `<div class="week-pill" style="background:${s.pct===0?'#0f0f1a':'#1a1630'};border-color:${isActive?'#7c5cbf':'#1e1a2e'}">
+      <div class="week-pill-label">S${w}</div>
+      <div class="week-pill-val" style="color:${s.pct===0?'#2a2040':pctColor(s.pct)}">${s.pct>0?s.pct+'%':'—'}</div>
+    </div>`;
+  }
+  h += `</div>`;
+
+  // MEJOR / PEOR
+  const completed = scores.filter(s => s.pct > 0);
+  if (completed.length > 0) {
+    const best = completed.reduce((a,b) => a.pct > b.pct ? a : b);
+    const worst = completed.length > 1 ? completed.reduce((a,b) => a.pct < b.pct ? a : b) : null;
+    h += `<div class="bw-row">
+      <div class="bw-card best">
+        <div class="bw-eyebrow">Mejor semana</div>
+        <div class="bw-week">S${best.w}</div>
+        <div class="bw-pct">${best.pct}%</div>
+      </div>`;
+    if (worst && worst.w !== best.w) {
+      h += `<div class="bw-card worst">
+        <div class="bw-eyebrow">Área de mejora</div>
+        <div class="bw-week">S${worst.w}</div>
+        <div class="bw-pct">${worst.pct}%</div>
+      </div>`;
+    }
+    h += `</div>`;
+  }
+
+  h += `<div class="footer-note">
+    📅 Próxima revisión: <span>Domingo 7–8 PM</span><br>
+    Sin autoengaños. Ejecución binaria. Se hizo o no se hizo.
+  </div>`;
+
+  return h;
+}
+
+function sectionTitle(emoji, title, subtitle) {
+  return `<div class="section-title">
+    <div class="section-title-row">
+      <span>${emoji}</span>
+      <span class="section-title-text">${title}</span>
+    </div>
+    <div class="section-subtitle">${subtitle}</div>
+  </div>`;
+}
+
+function milestoneCard(m, done, key) {
+  return `<button class="milestone-btn ${done?'done':'undone'}" onclick="toggle('${key}')">
+    <span class="milestone-emoji">${m.emoji}</span>
+    <div class="milestone-body">
+      <div class="milestone-row">
+        <span class="milestone-name ${done?'done':'undone'}">${m.label}</span>
+        <span class="milestone-check">${done?'✅':'⬜'}</span>
+      </div>
+      <div class="milestone-desc">${m.desc}</div>
+    </div>
+  </button>`;
+}
+
+// ACTIONS
+function changeWeek(dir) {
+  state.week = Math.max(1, Math.min(WEEKS_TOTAL, state.week + dir));
+  render();
+  window.scrollTo(0, 0);
+}
+
+function setView(v) {
+  state.view = v;
+  render();
+  window.scrollTo(0, 0);
+}
+
+// INIT
+loadState();
+render();
+</script>
+</body>
+</html>
