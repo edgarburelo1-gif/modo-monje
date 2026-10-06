@@ -198,6 +198,40 @@
     padding: 2px 7px; border-radius: 6px; margin-top: 4px;
     background: #2a200a; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.5px;
   }
+
+  /* FECHA DE INICIO */
+  .start-date-bar {
+    background: #0f0f1a; border-bottom: 1px solid #1e1a2e;
+    padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .start-date-label { font-size: 11px; color: #6b6080; }
+  .start-date-value { font-size: 12px; font-weight: 700; color: #a094c0; }
+  .start-date-btn {
+    font-size: 11px; font-weight: 600; padding: 5px 12px;
+    border-radius: 8px; border: none; cursor: pointer;
+  }
+  .start-date-btn.set   { background: #4c3880; color: #fff; }
+  .start-date-btn.clear { background: #2a1515; color: #ef4444; }
+  .start-date-input {
+    font-size: 12px; padding: 5px 10px; border-radius: 8px;
+    border: 1px solid #4c3880; background: #1a1630; color: #e8e4dc;
+  }
+
+  /* IR A SEMANA ACTUAL */
+  .go-current-btn {
+    display: block; width: calc(100% - 40px); margin: 10px 20px 0;
+    padding: 10px; border-radius: 10px; border: 1px solid #4c3880;
+    background: #1a1630; color: #a094c0; font-size: 12px; font-weight: 600;
+    cursor: pointer; text-align: center;
+  }
+
+  /* INDICADOR HOY */
+  .day-btn.today { background: #1e1030; }
+  .day-btn.today.done { background: #1e3a22; }
+  .today-dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: #a094c0; margin: 0 auto;
+  }
 </style>
 </head>
 <body>
@@ -324,6 +358,44 @@ const LIMITS = [
   'PROHIBIDO saltarse el despertador. Si abres tarde, ese día cuenta como rojo.',
 ];
 
+// ── FECHA LOCAL (sin UTC shift) ───────────────────────────────────────────────
+// Devuelve "YYYY-MM-DD" usando la hora local del dispositivo
+function localDateStr(date) {
+  const d = date || new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+// Lunes de la semana que contiene 'date' (local)
+function mondayOf(date) {
+  const d = new Date(date);
+  const dow = d.getDay(); // 0=Dom, 1=Lun…
+  const diff = (dow === 0) ? -6 : 1 - dow; // retroceder al lunes
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+// Semana actual (1-based) dada una fecha de inicio guardada como "YYYY-MM-DD"
+function currentWeekNumber(startStr) {
+  if (!startStr) return 1;
+  const [y, m, d] = startStr.split('-').map(Number);
+  const startMonday = mondayOf(new Date(y, m - 1, d));
+  const todayMonday = mondayOf(new Date());
+  const diffMs = todayMonday - startMonday;
+  const diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000));
+  return Math.min(Math.max(diffWeeks + 1, 1), WEEKS_TOTAL);
+}
+
+// Índice 0-5 (Lun=0 … Sáb=5) del día local de hoy, o -1 si es domingo
+function todayDayIndex() {
+  const dow = new Date().getDay(); // 0=Dom
+  if (dow === 0) return -1;        // domingo no está en el tracker
+  return dow - 1;                  // Lun→0, Mar→1 … Sáb→5
+}
+
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let state = { data: {}, week: 1, view: 'week' };
 
@@ -332,6 +404,8 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) state.data = JSON.parse(raw);
   } catch(e) {}
+  // Calcula semana actual automáticamente
+  state.week = currentWeekNumber(state.data._startDate || null);
 }
 
 function saveState() {
@@ -339,6 +413,20 @@ function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
     showToast();
   } catch(e) {}
+}
+
+// Guardar / cambiar / borrar fecha de inicio
+function setStartDate(dateStr) {
+  state.data._startDate = dateStr;
+  saveState();
+  state.week = currentWeekNumber(dateStr);
+  render();
+}
+function clearStartDate() {
+  delete state.data._startDate;
+  saveState();
+  state.week = 1;
+  render();
 }
 
 function showToast() {
@@ -457,6 +545,8 @@ function render() {
     <div class="header-status" style="color:${pctColor(ws.pct)}">${pctLabel(ws.pct)}</div>
   </div>
 
+  ${renderStartDateBar()}
+
   <div class="week-nav">
     <button class="week-btn" onclick="changeWeek(-1)">◀</button>
     <div class="week-info">
@@ -465,6 +555,8 @@ function render() {
     </div>
     <button class="week-btn" onclick="changeWeek(1)">▶</button>
   </div>
+
+  ${renderGoCurrentBtn()}
 
   <div class="tab-bar">
     <button class="tab-btn ${state.view==='week'?'active':'inactive'}" onclick="setView('week')">📅 Semana</button>
@@ -487,6 +579,41 @@ function render() {
   document.getElementById('app').innerHTML = html;
 }
 
+function renderStartDateBar() {
+  const startDate = state.data._startDate;
+  if (!startDate) {
+    return `<div class="start-date-bar">
+      <span class="start-date-label">Sin fecha de inicio</span>
+      <input type="date" id="startDateInput" class="start-date-input" value="${localDateStr()}">
+      <button class="start-date-btn set" onclick="applyStartDate()">Iniciar ciclo</button>
+    </div>`;
+  }
+  const [y, m, d] = startDate.split('-').map(Number);
+  const fmt = new Date(y, m - 1, d).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+  return `<div class="start-date-bar">
+    <span class="start-date-label">Ciclo iniciado: <span class="start-date-value">${fmt}</span></span>
+    <input type="date" id="startDateInput" class="start-date-input" value="${startDate}">
+    <button class="start-date-btn set" onclick="applyStartDate()">Cambiar</button>
+    <button class="start-date-btn clear" onclick="clearStartDate()">✕</button>
+  </div>`;
+}
+
+function applyStartDate() {
+  const input = document.getElementById('startDateInput');
+  if (input && input.value) setStartDate(input.value);
+}
+
+function renderGoCurrentBtn() {
+  const actual = currentWeekNumber(state.data._startDate || null);
+  if (state.week === actual) return '';
+  return `<button class="go-current-btn" onclick="goToCurrentWeek()">📍 Ir a la semana actual (S${actual})</button>`;
+}
+
+function goToCurrentWeek() {
+  state.week = currentWeekNumber(state.data._startDate || null);
+  render();
+}
+
 function renderWeekView(ws) {
   let h = '';
 
@@ -503,12 +630,17 @@ function renderWeekView(ws) {
         </div>
       </div>
       <div class="habit-days">`;
+    const actualWeek = currentWeekNumber(state.data._startDate || null);
+    const todayIdx = todayDayIndex();
     for (let d = 0; d < 6; d++) {
       const key = `w${state.week}_d${d}_${habit.id}`;
       const done = !!state.data[key];
-      h += `<button class="day-btn ${done?'done':'undone'}" onclick="toggle('${key}')">
+      const isToday = (state.week === actualWeek) && (d === todayIdx);
+      const cls = done ? 'done' : (isToday ? 'today' : 'undone');
+      h += `<button class="day-btn ${cls}" onclick="toggle('${key}')">
         <span class="day-label">${DAYS[d]}</span>
-        <span class="day-check">${done?'✅':'⬜'}</span>
+        <span class="day-check">${done ? '✅' : (isToday ? '🔵' : '⬜')}</span>
+        ${isToday ? '<div class="today-dot"></div>' : ''}
       </button>`;
     }
     h += `</div></div>`;
