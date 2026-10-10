@@ -32,6 +32,32 @@
   .stat-val { font-size: 22px; font-weight: 900; }
   .stat-lbl { font-size: 9px; color: #6b6080; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
   .header-status { margin-top: 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
+  /* MISIÓN */
+  .mision-identidad { background: linear-gradient(135deg,#1a1030,#0f1a30); border:1px solid #3a2a60; border-radius:14px; padding:16px; margin-bottom:16px; text-align:center; }
+  .mision-identidad-label { font-size:9px; letter-spacing:3px; color:#8b7fa8; text-transform:uppercase; margin-bottom:8px; }
+  .mision-identidad-texto { font-size:13px; color:#c4b8e0; font-style:italic; line-height:1.8; }
+  .mision-section-title { font-size:13px; font-weight:800; color:#fff; margin:20px 0 10px; letter-spacing:-0.3px; }
+  .mision-puente { background:#0f0f1a; border:1px solid #1e1a2e; border-radius:14px; padding:14px; margin-bottom:4px; }
+  .mision-puente-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #1a1630; }
+  .mision-puente-row:last-of-type { border-bottom:none; }
+  .mision-puente-label { font-size:12px; color:#8b7fa8; }
+  .mision-puente-val { font-size:13px; font-weight:700; color:#e8e4dc; }
+  .mision-puente-equiv { text-align:center; font-size:11px; color:#5a5070; margin-top:10px; padding-top:10px; border-top:1px solid #1e1a2e; }
+  .mision-metrica-card { background:#0f0f1a; border:1px solid #1e1a2e; border-radius:14px; padding:14px; margin-bottom:12px; }
+  .mision-metrica-header { display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#a094c0; margin-bottom:10px; }
+  .mision-progress-bar { background:#1e1a2e; border-radius:99px; height:6px; overflow:hidden; margin-bottom:10px; }
+  .mision-progress-fill { height:100%; border-radius:99px; transition:width 0.4s; }
+  .mision-metrica-input-row { display:flex; gap:8px; }
+  .mision-input { flex:1; background:#1a1630; border:1px solid #2a2040; border-radius:8px; color:#e8e4dc; font-size:13px; padding:8px 10px; }
+  .mision-save-btn { background:#4c3880; border:none; color:#fff; border-radius:8px; padding:8px 14px; font-size:12px; font-weight:700; cursor:pointer; }
+  .mision-fase { background:#0f0f1a; border:1px solid #1e1a2e; border-radius:14px; padding:14px; margin-bottom:10px; display:flex; gap:12px; align-items:flex-start; cursor:pointer; }
+  .mision-fase.fase-done { opacity:0.5; }
+  .mision-fase-num { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:900; flex-shrink:0; }
+  .mision-fase-body { flex:1; }
+  .mision-fase-label { font-size:13px; font-weight:700; margin-bottom:2px; }
+  .mision-fase-plazo { font-size:10px; color:#5a5070; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+  .mision-fase-desc { font-size:11px; color:#6b6080; line-height:1.5; }
+
   .identidad-card {
     margin: 14px 20px 4px;
     background: linear-gradient(135deg, #1a1030 0%, #0f1a30 100%);
@@ -59,10 +85,10 @@
   .week-title { font-weight: 700; font-size: 14px; color: #fff; }
   .week-sub { font-size: 10px; color: #6b6080; margin-top: 2px; }
 
-  .tab-bar { display: flex; gap: 8px; padding: 12px 20px 0; }
+  .tab-bar { display: flex; gap: 6px; padding: 12px 12px 0; }
   .tab-btn {
-    flex: 1; padding: 9px 0; border-radius: 10px; border: none;
-    font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s;
+    flex: 1; padding: 8px 0; border-radius: 10px; border: none;
+    font-weight: 600; font-size: 10px; cursor: pointer; transition: all 0.2s;
   }
   .tab-btn.active { background: #4c3880; color: #fff; }
   .tab-btn.inactive { background: #1a1630; color: #6b6080; }
@@ -580,6 +606,7 @@ function render() {
     <button class="tab-btn ${state.view==='week'?'active':'inactive'}" onclick="setView('week')">📅 Semana</button>
     <button class="tab-btn ${state.view==='review'?'active':'inactive'}" onclick="setView('review')">📊 Revisión</button>
     <button class="tab-btn ${state.view==='libros'?'active':'inactive'}" onclick="setView('libros')">📚 Libros</button>
+    <button class="tab-btn ${state.view==='mision'?'active':'inactive'}" onclick="setView('mision')">🚀 Misión</button>
   </div>
 
   <div class="content">
@@ -589,6 +616,8 @@ function render() {
     html += renderWeekView(ws);
   } else if (state.view === 'review') {
     html += renderReviewView(ws, ps);
+  } else if (state.view === 'mision') {
+    html += renderMisionView();
   } else {
     html += renderLibrosView();
   }
@@ -835,6 +864,117 @@ function libroCard(libro) {
     </div>
     <span class="libro-check">${leido?'✅':'⬜'}</span>
   </div>`;
+}
+
+// ── MISIÓN ────────────────────────────────────────────────────────────────────
+function renderMisionView() {
+  // Progreso TikTok guardado
+  const tikFollowers = state.data._tikFollowers || 0;
+  const tikPct = Math.min(Math.round((tikFollowers / 1000) * 100), 100);
+
+  // Ingresos digitales mensuales guardados
+  const ingDigital = state.data._ingDigital || 0;
+  const ingPct = Math.min(Math.round((ingDigital / 18000) * 100), 100);
+
+  // Fases
+  const fases = [
+    { id: 'f1', num: '1', label: 'Construir audiencia', plazo: 'Ahora → 3 meses', desc: 'Publicar en TikTok mostrando las mini apps. Meta: 1,000 seguidores que pregunten "¿cómo lo hiciste?"', color: '#f59e0b' },
+    { id: 'f2', num: '2', label: 'Primer Zoom de venta', plazo: 'Mes 3 → 6', desc: 'Sesión en vivo enseñando a hacer una mini app. 20 personas × $997 = $20,000 en un fin de semana.', color: '#a78bfa' },
+    { id: 'f3', num: '3', label: 'Curso grabado escalable', plazo: 'Mes 6 → 12', desc: 'Con testimonios y validación, grabar el curso. Subir precio. Escalar sin estar presente.', color: '#34d399' },
+  ];
+
+  let h = `<div class="review-hero">
+    <div class="review-eyebrow">Tu camino a la libertad</div>
+    <div class="review-pct" style="color:#f59e0b">🚀</div>
+    <div class="review-sub">Empresario digital libre</div>
+  </div>`;
+
+  // Identidad
+  h += `<div class="mision-identidad">
+    <div class="mision-identidad-label">MI IDENTIDAD</div>
+    <div class="mision-identidad-texto">"Soy un empresario digital libre.<br>Creo sistemas que trabajan sin mí.<br>Me muevo, aprendo y construyo<br>desde cualquier lugar del mundo."</div>
+  </div>`;
+
+  // Puente financiero
+  h += `<div class="mision-section-title">💰 El puente financiero</div>
+  <div class="mision-puente">
+    <div class="mision-puente-row">
+      <span class="mision-puente-label">Hoy (tienda)</span>
+      <span class="mision-puente-val">~$12,000/mes</span>
+    </div>
+    <div class="mision-puente-row">
+      <span class="mision-puente-label">Meta real de libertad</span>
+      <span class="mision-puente-val" style="color:#34d399">$30,000–$50,000/mes</span>
+    </div>
+    <div class="mision-puente-row">
+      <span class="mision-puente-label">Necesito generar digital</span>
+      <span class="mision-puente-val" style="color:#a78bfa">+$18,000/mes</span>
+    </div>
+    <div class="mision-puente-equiv">= solo 36 personas pagando $500 pesos</div>
+  </div>`;
+
+  // Métricas en vivo
+  h += `<div class="mision-section-title">📊 Progreso actual</div>`;
+
+  // TikTok followers
+  h += `<div class="mision-metrica-card">
+    <div class="mision-metrica-header">
+      <span>📱 Seguidores TikTok</span>
+      <span style="color:#f59e0b;font-weight:700">${tikFollowers.toLocaleString()} / 1,000</span>
+    </div>
+    <div class="mision-progress-bar"><div class="mision-progress-fill" style="width:${tikPct}%;background:#f59e0b"></div></div>
+    <div class="mision-metrica-input-row">
+      <input type="number" class="mision-input" id="tikInput" placeholder="Actualizar seguidores" value="${tikFollowers||''}">
+      <button class="mision-save-btn" onclick="saveMisionMetric('_tikFollowers','tikInput')">Guardar</button>
+    </div>
+  </div>`;
+
+  // Ingresos digitales
+  h += `<div class="mision-metrica-card">
+    <div class="mision-metrica-header">
+      <span>💵 Ingreso digital/mes</span>
+      <span style="color:#34d399;font-weight:700">$${ingDigital.toLocaleString()} / $18,000</span>
+    </div>
+    <div class="mision-progress-bar"><div class="mision-progress-fill" style="width:${ingPct}%;background:#34d399"></div></div>
+    <div class="mision-metrica-input-row">
+      <input type="number" class="mision-input" id="ingInput" placeholder="Ingresos este mes ($)" value="${ingDigital||''}">
+      <button class="mision-save-btn" onclick="saveMisionMetric('_ingDigital','ingInput')">Guardar</button>
+    </div>
+  </div>`;
+
+  // Las 3 fases
+  h += `<div class="mision-section-title">🗺️ Las 3 fases</div>`;
+  for (const f of fases) {
+    const done = !!state.data[f.id];
+    h += `<div class="mision-fase ${done?'fase-done':''}" onclick="toggleMisionFase('${f.id}')">
+      <div class="mision-fase-num" style="background:${f.color}20;color:${f.color};border:1px solid ${f.color}40">${f.num}</div>
+      <div class="mision-fase-body">
+        <div class="mision-fase-label" style="color:${done?'#5a5070':f.color}">${f.label}</div>
+        <div class="mision-fase-plazo">${f.plazo}</div>
+        <div class="mision-fase-desc">${f.desc}</div>
+      </div>
+      <span style="font-size:20px">${done?'✅':'⬜'}</span>
+    </div>`;
+  }
+
+  h += `<div class="footer-note" style="margin-top:20px">
+    Actualiza tus seguidores e ingresos cada semana.<br>Cada número es un voto para la persona que estás siendo.
+  </div>`;
+
+  return h;
+}
+
+function saveMisionMetric(key, inputId) {
+  const val = parseInt(document.getElementById(inputId).value) || 0;
+  state.data[key] = val;
+  saveState();
+  render();
+}
+
+function toggleMisionFase(id) {
+  state.data[id] = !state.data[id];
+  saveState();
+  render();
 }
 
 // ── CONTROLS ──────────────────────────────────────────────────────────────────
